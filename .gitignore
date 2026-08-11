@@ -1,0 +1,35 @@
+# --- Environment / secrets ---
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+
+# --- Python (if training scripts / local tooling used) ---
+venv/
+.venv/
+__pycache__/
+*.pyc
+*.pyo
+.ipynb_checkpoints/
+
+# --- Node (if any tooling/build scripts used) ---
+node_modules/
+npm-debug.log*
+
+# --- Client data — never commit ---
+training-photos/*
+!training-photos/.gitkeep
+site-backup/*
+!site-backup/.gitkeep
+
+# --- OS / editor junk ---
+.DS_Store
+Thumbs.db
+*.log
+.vscode/
+.idea/
+
+# --- Zen Cart local config (contains DB credentials) ---
+**/includes/configure.php
+**/admin/includes/configure.php
