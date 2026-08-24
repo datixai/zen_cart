@@ -1,0 +1,46 @@
+{
+  "num_classes": 827,
+  "categories": [
+    "Locomotives",
+    "Passenger Train Cars",
+    "Freight Cars",
+    "Automobiles"
+  ],
+  "input_size": 224,
+  "normalize_mean": [
+    0.485,
+    0.456,
+    0.406
+  ],
+  "normalize_std": [
+    0.229,
+    0.224,
+    0.225
+  ],
+  "results_summary": [
+    {
+      "model_name": "MobileNetV2",
+      "test_acc": 0.969770253929867,
+      "top3_acc": 0.9975816203143894,
+      "f1_macro": 0.9605804111245465,
+      "model_size_mb": 12.76038646697998,
+      "inference_ms_per_image": 0.8380398154258728
+    },
+    {
+      "model_name": "EfficientNet-B0",
+      "test_acc": 0.9613059250302297,
+      "top3_acc": 0.9963724304715841,
+      "f1_macro": 0.949496170898831,
+      "model_size_mb": 19.61617946624756,
+      "inference_ms_per_image": 1.300598680973053
+    },
+    {
+      "model_name": "CLIP ViT-B/32 (linear probe)",
+      "test_acc": 0.9528415961305925,
+      "top3_acc": 0.9963724304715841,
+      "f1_macro": 0.9386134623135831,
+      "model_size_mb": 577.2274808883667,
+      "inference_ms_per_image": 10.681450366973877
+    }
+  ]
+}

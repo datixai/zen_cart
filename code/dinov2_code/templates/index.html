@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DINOv2 Base — Retrieval Test</title>
+<style>
+  :root {
+    --navy: #0A1F44;
+    --blue: #2B6CB0;
+    --gray: #6B7280;
+    --light-gray: #E5E7EB;
+    --lighter-bg: #F3F4F6;
+    --green: #16A34A;
+    --amber: #D97706;
+    --red: #DC2626;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: #FFFFFF;
+    color: #1F2937;
+    font-family: Arial, sans-serif;
+  }
+  .wrap { max-width: 1000px; margin: 0 auto; padding: 40px 24px 80px; }
+
+  .masthead {
+    border-bottom: 1px solid var(--light-gray);
+    padding-bottom: 18px;
+    margin-bottom: 32px;
+  }
+  .masthead .brand { font-size: 12px; letter-spacing: 0.12em; color: var(--blue); font-weight: bold; text-transform: uppercase; margin-bottom: 8px; }
+  .masthead h1 { font-size: 30px; margin: 0 0 6px 0; color: var(--navy); }
+  .masthead .sub { color: var(--gray); font-size: 13px; }
+
+  .panel {
+    background: #FFFFFF;
+    border: 1px solid var(--light-gray);
+    border-radius: 6px;
+    padding: 20px 22px;
+    margin-bottom: 18px;
+  }
+  .panel h2 { font-size: 14px; color: var(--navy); margin: 0 0 14px 0; text-transform: uppercase; letter-spacing: 0.05em; }
+
+  .status-badge { display: inline-flex; align-items: center; gap: 8px; font-size: 13px; color: var(--gray); }
+  .status-badge .dot { width: 8px; height: 8px; border-radius: 50%; background: var(--green); }
+  .status-badge.error .dot { background: var(--red); }
+  .status-warning {
+    font-size: 13px; color: #92400E; background: #FFFBEB; border: 1px dashed var(--amber);
+    padding: 10px 12px; border-radius: 4px;
+  }
+
+  .dropzone {
+    border: 1px dashed var(--light-gray);
+    border-radius: 6px;
+    padding: 26px;
+    text-align: center;
+    cursor: pointer;
+    background: var(--lighter-bg);
+  }
+  .dropzone:hover, .dropzone.dragover { border-color: var(--blue); background: #EFF6FF; }
+  .dropzone input { display: none; }
+  .dropzone .dz-label { font-size: 13px; color: var(--gray); }
+  .dropzone .dz-label strong { color: var(--blue); }
+
+  #previewGrid { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px; }
+  .preview-thumb { width: 76px; height: 76px; border-radius: 4px; overflow: hidden; border: 1px solid var(--light-gray); }
+  .preview-thumb img { width: 100%; height: 100%; object-fit: cover; display: block; }
+
+  .run-row { display: flex; align-items: center; gap: 16px; }
+  .run-btn {
+    background: var(--navy);
+    color: #FFFFFF;
+    border: none;
+    padding: 12px 28px;
+    border-radius: 4px;
+    font-size: 14px;
+    font-weight: bold;
+    cursor: pointer;
+  }
+  .run-btn:hover:not(:disabled) { background: #132A55; }
+  .run-btn:disabled { background: var(--light-gray); color: var(--gray); cursor: not-allowed; }
+  #status { font-size: 13px; color: var(--gray); }
+
+  #resultsArea { margin-top: 28px; }
+
+  .result-card {
+    border: 1px solid var(--light-gray);
+    border-radius: 6px;
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+  .result-header {
+    display: flex; align-items: center; gap: 16px;
+    padding: 18px 20px;
+    background: var(--lighter-bg);
+    border-bottom: 1px solid var(--light-gray);
+  }
+  .result-header img { width: 110px; height: 110px; object-fit: cover; border-radius: 4px; border: 1px solid var(--light-gray); }
+  .result-header .fname { font-size: 14px; color: var(--navy); font-weight: bold; }
+  .result-header .fname .label { display: block; font-size: 10.5px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; font-weight: normal; }
+
+  .match-cards { padding: 18px 20px 20px; display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+  @media (max-width: 700px) { .match-cards { grid-template-columns: 1fr; } }
+
+  .match-card {
+    background: var(--lighter-bg);
+    border: 1px solid var(--light-gray);
+    border-radius: 5px;
+    overflow: hidden;
+  }
+  .match-card .rank-row { display: flex; align-items: center; gap: 6px; padding: 10px 12px 0; font-size: 10.5px; color: var(--gray); text-transform: uppercase; letter-spacing: 0.05em; }
+  .match-card .dot { width: 8px; height: 8px; border-radius: 50%; }
+  .match-card .dot.high { background: var(--green); }
+  .match-card .dot.mid { background: var(--amber); }
+  .match-card .dot.low { background: var(--red); }
+
+  .match-thumb { width: 100%; aspect-ratio: 4/3; object-fit: cover; margin-top: 8px; background: #FFFFFF; }
+  .match-thumb.placeholder { display: flex; align-items: center; justify-content: center; font-size: 11px; color: var(--gray); text-align: center; padding: 16px; }
+
+  .match-body { padding: 10px 12px 14px; }
+  .match-id { font-size: 16px; font-weight: bold; color: var(--navy); }
+  .match-cat { font-size: 11px; color: var(--gray); margin-top: 2px; }
+  .match-cat.no-ref { font-style: italic; }
+
+  .sim-track { height: 6px; background: var(--light-gray); border-radius: 3px; overflow: hidden; margin-top: 8px; }
+  .sim-fill { height: 100%; }
+  .sim-fill.high { background: var(--green); }
+  .sim-fill.mid { background: var(--amber); }
+  .sim-fill.low { background: var(--red); }
+  .sim-pct { font-size: 11.5px; color: var(--gray); margin-top: 5px; text-align: right; }
+
+  .model-error { color: var(--red); font-size: 13px; padding: 8px 4px; }
+  .footnote { margin-top: 36px; padding-top: 14px; border-top: 1px solid var(--light-gray); font-size: 11px; color: #9CA3AF; }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <div class="masthead">
+    <div class="brand">Datix AI &middot; Internal Tooling</div>
+    <h1>DINOv2 Base</h1>
+    <div class="sub">Retrieval test bench &mdash; single model, not the live site</div>
+  </div>
+
+  <div class="panel">
+    <h2>Model Status</h2>
+    {% if gallery_available %}
+      <div class="status-badge"><span class="dot"></span>Gallery index loaded &mdash; {{ gallery_size }} items indexed</div>
+    {% else %}
+      <div class="status-warning">Gallery index not found. Check MODEL_EXPORT_DIR in app.py and confirm gallery_prototypes.npy + gallery_products_ids.json exist there.</div>
+    {% endif %}
+  </div>
+
+  <div class="panel">
+    <h2>Upload Photograph(s)</h2>
+    <div class="dropzone" id="dropzone">
+      <input type="file" id="imageInput" accept="image/*" multiple>
+      <div class="dz-label"><strong>Click to browse</strong> or drag photos here</div>
+    </div>
+    <div id="previewGrid"></div>
+  </div>
+
+  <div class="panel">
+    <div class="run-row">
+      <button id="runBtn" class="run-btn">Run Search</button>
+      <span id="status"></span>
+    </div>
+  </div>
+
+  <div id="resultsArea"></div>
+
+  <div class="footnote">Predictions are cross-referenced against conductor_dataset on this machine. Green &ge; 85% similarity &middot; amber 50&ndash;85% &middot; red &lt; 50%. Similarity is cosine similarity between embeddings, not a calibrated probability.</div>
+
+</div>
+
+<script>
+const imageInput = document.getElementById('imageInput');
+const dropzone = document.getElementById('dropzone');
+const previewGrid = document.getElementById('previewGrid');
+const runBtn = document.getElementById('runBtn');
+const statusEl = document.getElementById('status');
+const resultsArea = document.getElementById('resultsArea');
+
+function renderPreviews(files) {
+  previewGrid.innerHTML = '';
+  Array.from(files).forEach(file => {
+    const thumb = document.createElement('div');
+    thumb.className = 'preview-thumb';
+    const img = document.createElement('img');
+    img.src = URL.createObjectURL(file);
+    thumb.appendChild(img);
+    previewGrid.appendChild(thumb);
+  });
+}
+
+imageInput.addEventListener('change', () => renderPreviews(imageInput.files));
+dropzone.addEventListener('click', () => imageInput.click());
+dropzone.addEventListener('dragover', (e) => { e.preventDefault(); dropzone.classList.add('dragover'); });
+dropzone.addEventListener('dragleave', () => dropzone.classList.remove('dragover'));
+dropzone.addEventListener('drop', (e) => {
+  e.preventDefault();
+  dropzone.classList.remove('dragover');
+  if (e.dataTransfer.files.length) {
+    imageInput.files = e.dataTransfer.files;
+    renderPreviews(imageInput.files);
+  }
+});
+
+function tier(p) {
+  if (p >= 0.85) return 'high';
+  if (p >= 0.5) return 'mid';
+  return 'low';
+}
+
+function renderMatch(pred, rank) {
+  const t = tier(pred.similarity);
+  const pct = (pred.similarity * 100).toFixed(1);
+
+  const thumb = pred.reference
+    ? `<img class="match-thumb" src="${pred.reference.image_data_url}" alt="reference">`
+    : `<div class="match-thumb placeholder">no reference photo in dataset</div>`;
+  const cat = pred.reference
+    ? `<div class="match-cat">${pred.reference.category}</div>`
+    : `<div class="match-cat no-ref">not found in dataset</div>`;
+
+  return `
+    <div class="match-card">
+      <div class="rank-row"><span class="dot ${t}"></span>Match ${rank}</div>
+      ${thumb}
+      <div class="match-body">
+        <div class="match-id">#${pred.products_id}</div>
+        ${cat}
+        <div class="sim-track"><div class="sim-fill ${t}" style="width:${pct}%;"></div></div>
+        <div class="sim-pct">${pct}% similarity</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderResultCard(imageResult, previewUrl) {
+  if (imageResult.error) {
+    return `
+      <div class="result-card">
+        <div class="result-header">
+          ${previewUrl ? `<img src="${previewUrl}" alt="uploaded">` : ''}
+          <div class="fname"><span class="label">Error</span>${imageResult.filename}</div>
+        </div>
+        <div class="model-error">${imageResult.error}</div>
+      </div>`;
+  }
+
+  const cards = imageResult.predictions.map((p, i) => renderMatch(p, i + 1)).join('');
+
+  return `
+    <div class="result-card">
+      <div class="result-header">
+        ${previewUrl ? `<img src="${previewUrl}" alt="uploaded">` : ''}
+        <div class="fname"><span class="label">Uploaded photo</span>${imageResult.filename}</div>
+      </div>
+      <div class="match-cards">${cards}</div>
+    </div>
+  `;
+}
+
+runBtn.addEventListener('click', async () => {
+  const files = imageInput.files;
+  if (!files || files.length === 0) {
+    statusEl.textContent = 'Please choose at least one photo.';
+    return;
+  }
+
+  runBtn.disabled = true;
+  statusEl.textContent = `Running search on ${files.length} image(s)...`;
+  resultsArea.innerHTML = '';
+
+  const formData = new FormData();
+  Array.from(files).forEach(f => formData.append('images', f));
+  const previewUrls = Array.from(files).map(f => URL.createObjectURL(f));
+
+  try {
+    const resp = await fetch('/predict', { method: 'POST', body: formData });
+    const data = await resp.json();
+
+    if (data.error) {
+      statusEl.textContent = 'Error: ' + data.error;
+    } else {
+      statusEl.textContent = `Done \u2014 ${data.results.length} image(s) processed.`;
+      resultsArea.innerHTML = data.results.map((r, i) => renderResultCard(r, previewUrls[i])).join('');
+    }
+  } catch (e) {
+    statusEl.textContent = 'Request failed: ' + e;
+  } finally {
+    runBtn.disabled = false;
+  }
+});
+</script>
+</body>
+</html>

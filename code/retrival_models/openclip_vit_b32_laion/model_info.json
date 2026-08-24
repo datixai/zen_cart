@@ -1,0 +1,7 @@
+{
+  "total_params": 151277313,
+  "model_size_mb": 577.2251691818237,
+  "patch_tokens_per_image": 50,
+  "architecture": "ViT (OpenCLIP/LAION)",
+  "hf_repo_hint": "openclip_vit_b32_laion"
+}

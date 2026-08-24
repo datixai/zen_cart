@@ -33,3 +33,14 @@ Thumbs.db
 # --- Zen Cart local config (contains DB credentials) ---
 **/includes/configure.php
 **/admin/includes/configure.php
+
+Data_scrap/
+lionel_dataset/
+*.zip
+datasets/
+
+visual_search_models/
+
+visual_search_models/
+*.zip
+venv/

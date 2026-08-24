@@ -1,0 +1,7 @@
+{
+  "total_params": 86580480,
+  "model_size_mb": 330.36005687713623,
+  "patch_tokens_per_image": 257,
+  "architecture": "ViT (DINOv2, self-supervised)",
+  "hf_repo_hint": "dinov2_base"
+}
